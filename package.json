@@ -16,6 +16,7 @@
     "deploy": "./node_modules/.bin/node-lambda deploy"
   },
   "dependencies": {
+    "asyncawait": "^1.0.6",
     "pg": "^7.4.0"
   },
   "devDependencies": {

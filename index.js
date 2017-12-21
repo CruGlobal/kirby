@@ -5,6 +5,8 @@ console.log('Loading function');
 var clone = true;
 
 const { Pool, Client } = require('pg');
+var async = require('asyncawait/async');
+var await = require('asyncawait/await');
 
 const masterClient = new Client({
     user: process.env.MASTER_PG_USER,
@@ -20,13 +22,23 @@ const slaveClient = new Client({
 });
 
 exports.handler = function(event, context, callback) {
+    run(event)
+        .then(() => {
+            callback(null, "some success message");
+        })
+        .catch((e) => {
+            callback(e);
+        });
+};
+
+var run = async (function (event) {
     const table = event.table;
     const uuids = event.uuids.split(/,/);
 
     if(event["clone"] !== undefined)
         clone = event.clone;
 
-    connectToDatabases();
+    await (connectToDBs());
 
     checkTables(table);
 
@@ -34,51 +46,45 @@ exports.handler = function(event, context, callback) {
 
     moveRows(table, uuids);
 
-    callback(null, "some success message");
-};
+    await (closeDBConnections());
+});
 
-function connectToDatabases() {
-    p('connecting to databases');
-    masterClient.connect();
+var connectToDBs = async (function () {
+    p('-- connecting to databases');
 
-    masterClient.query('SELECT NOW()')
-                .then(res => {
-                    p('master now: ' + res.rows[0].now);
-                    masterClient.end();
-                })
-                .catch(db_connection_catch);
+    await (masterClient.connect());
 
-    slaveClient.connect();
+    const res = await (masterClient.query('SELECT NOW()'));
+    p('master now: ' + res.rows[0].now);
 
-    slaveClient.query('SELECT NOW()')
-               .then(res => {
-                   p('slave now: ' + res.rows[0].now);
-                   slaveClient.end();
-               })
-               .catch(db_connection_catch);
-}
-
-function db_connection_catch(e) {
-    console.error(e.stack)
-}
+    await (slaveClient.connect());
+    await (slaveClient.query('SELECT NOW()'));
+});
 
 function checkTables(table) {
-    p('checking that table exists both places');
+    p('-- checking that table exists both places');
 }
 
 function checkRows(table, uuids) {
-    p('checking that the rows exist in master db');
+    p('-- checking that the rows exist in master db');
 }
 
 function moveRows(table, uuids) {
-    p('copying rows to slave db');
+    p('-- copying rows to slave db');
     if(!clone)
         deleteRows(table, uuids);
 }
 
 function deleteRows(table, uuids) {
-    p('deleting rows from master db');
+    p('-- deleting rows from master db');
 }
+
+var closeDBConnections = async (function () {
+    p('-- closing connections to databases');
+
+    await (masterClient.end());
+    await (slaveClient.end());
+});
 
 function p(s) {
     console.log(s)
