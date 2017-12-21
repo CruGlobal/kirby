@@ -2,11 +2,12 @@
 
 console.log('Loading function');
 
-var clone = true;
+let clone = true;
 
 const { Pool, Client } = require('pg');
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
+const async = require('asyncawait/async');
+const await = require('asyncawait/await');
+const _ = require('lodash/core');
 
 const masterClient = new Client({
     user: process.env.MASTER_PG_USER,
@@ -27,6 +28,7 @@ exports.handler = function(event, context, callback) {
             callback(null, "some success message");
         })
         .catch((e) => {
+            closeDBConnections();
             callback(e);
         });
 };
@@ -40,7 +42,7 @@ var run = async (function (event) {
 
     await (connectToDBs());
 
-    checkTables(table);
+    await (checkTables(table));
 
     checkRows(table, uuids);
 
@@ -49,7 +51,7 @@ var run = async (function (event) {
     await (closeDBConnections());
 });
 
-var connectToDBs = async (function () {
+let connectToDBs = async (function () {
     p('-- connecting to databases');
 
     await (masterClient.connect());
@@ -61,13 +63,28 @@ var connectToDBs = async (function () {
     await (slaveClient.query('SELECT NOW()'));
 });
 
-function checkTables(table) {
+let checkTables = async (function(table) {
     p('-- checking that table exists both places');
-}
 
-function checkRows(table, uuids) {
+    let query = "SELECT 1 " +
+        "FROM information_schema.tables " +
+        "WHERE table_schema='public' " +
+        "AND table_type='BASE TABLE'" +
+        "AND table_name = $1;";
+
+    let checks = _.map([masterClient, slaveClient], async ((client) => {
+        const res = await (client.query(query, [table]));
+        if(res.rows.length === 0) {
+            throw 'Master DB missing table: ' + table
+        }
+    }));
+
+    await(checks);
+});
+
+let checkRows = async (function(table, uuids) {
     p('-- checking that the rows exist in master db');
-}
+});
 
 function moveRows(table, uuids) {
     p('-- copying rows to slave db');
@@ -79,7 +96,7 @@ function deleteRows(table, uuids) {
     p('-- deleting rows from master db');
 }
 
-var closeDBConnections = async (function () {
+let closeDBConnections = async (function () {
     p('-- closing connections to databases');
 
     await (masterClient.end());
