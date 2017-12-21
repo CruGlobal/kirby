@@ -18,7 +18,8 @@
   "dependencies": {
     "asyncawait": "^1.0.6",
     "lodash": "^4.17.4",
-    "pg": "^7.4.0"
+    "pg": "^7.4.0",
+    "pg-escape": "^0.2.0"
   },
   "devDependencies": {
     "node-lambda": "^0.11.5"
