@@ -93,13 +93,18 @@ const checkRows = async (function(table, uuids) {
 
     const query = escape("SELECT COUNT(*) FROM %I WHERE \"uuid\" in %L;", table, uuids);
 
-    const res = await (masterClient.query(query));
-    const diff = expectedCount - parseInt(res.rows[0].count, 10)
+    const masterRes = await (masterClient.query(query));
+    const diff = expectedCount - parseInt(masterRes.rows[0].count, 10)
     if(diff !== 0) {
         throw diff + ' uuids could not be found.'
     }
 
-    // TODO: Ensure uuid's don't already exist on slave
+    // TODO - Should I be safe and fail? Or only send the ones that don't exist?
+    // TODO - Probably a config here because master tables will be attempted to be sent every time
+    const slaveRes = await (slaveClient.query(query));
+    if(parseInt(slaveRes.rows[0].count, 10) !== 0) {
+        throw 'some of those rows already exist on the slave db'
+    }
 });
 
 const moveRows = async (function(table, uuids) {
