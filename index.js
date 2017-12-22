@@ -36,7 +36,7 @@ exports.handler = function(event, context, callback) {
         });
 };
 
-var run = async (function (event) {
+const run = async (function (event) {
     const table = event.table;
     const uuids = event.uuids.split(/,/);
 
@@ -54,7 +54,7 @@ var run = async (function (event) {
     await (closeDBConnections());
 });
 
-let connectToDBs = async (function () {
+const connectToDBs = async (function () {
     p('-- connecting to databases');
 
     await (masterClient.connect());
@@ -66,7 +66,7 @@ let connectToDBs = async (function () {
     await (slaveClient.query('SELECT NOW()'));
 });
 
-let checkTables = async (function(table) {
+const checkTables = async (function(table) {
     p('-- checking that table exists both places');
 
     const query = "SELECT 1 " +
@@ -75,7 +75,7 @@ let checkTables = async (function(table) {
         "AND table_type='BASE TABLE'" +
         "AND table_name = %L;";
 
-    let checks = _.map([masterClient, slaveClient], async ((client) => {
+    const checks = _.map([masterClient, slaveClient], async ((client) => {
         const escaped = escape(query, table);
         const res = await (client.query(escaped));
         if(res.rows.length === 0) {
@@ -86,7 +86,7 @@ let checkTables = async (function(table) {
     await(checks);
 });
 
-let checkRows = async (function(table, uuids) {
+const checkRows = async (function(table, uuids) {
     p('-- checking that the rows exist in master db');
 
     const expectedCount = _array.uniq(uuids).length;
@@ -102,14 +102,14 @@ let checkRows = async (function(table, uuids) {
     // TODO: Ensure uuid's don't already exist on slave
 });
 
-let moveRows = async (function(table, uuids) {
+const moveRows = async (function(table, uuids) {
     p('-- copying rows to slave db');
 
     const query = escape("SELECT * FROM %I WHERE \"uuid\" in %L;", table, uuids);
     const res = await (masterClient.query(query));
 
     // TODO - open transaction
-    let pushes = _.map(res.rows, async ((row) => {
+    const pushes = _.map(res.rows, async ((row) => {
         await (moveRow(table, row));
     }));
     await(pushes);
@@ -119,14 +119,14 @@ let moveRows = async (function(table, uuids) {
     // TODO - close transaction
 });
 
-let moveRow = async (function(table, row) {
+const moveRow = async (function(table, row) {
     let vals = values(row);
     vals = encodedValues(vals);
     const query = escape("INSERT INTO %I VALUES(%s)", table, vals);
     await (slaveClient.query(query));
 });
 
-let encodedValues = function(vals) {
+const encodedValues = function(vals) {
     return _.map(vals, (v) => {
         if(typeof(v) == 'number')
             return v;
@@ -138,11 +138,11 @@ let encodedValues = function(vals) {
     })
 }
 
-let deleteRows = async (function(table, uuids) {
+const deleteRows = async (function(table, uuids) {
     p('-- [TODO] deleting rows from master db');
 });
 
-let closeDBConnections = async (function () {
+const closeDBConnections = async (function () {
     p('-- closing connections to databases');
 
     await (masterClient.end());
