@@ -26,7 +26,7 @@ const slaveClient = new Client({
 });
 
 exports.handler = function(event, context, callback) {
-    run(event)
+    suck(event)
         .then(() => {
             callback(null, "some success message");
         })
@@ -36,7 +36,7 @@ exports.handler = function(event, context, callback) {
         });
 };
 
-const run = async (function (event) {
+const suck = async (function (event) {
     const table = event.table;
     const uuids = event.uuids.split(/,/);
 
