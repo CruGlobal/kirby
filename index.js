@@ -9,6 +9,7 @@ const async = require('asyncawait/async');
 const await = require('asyncawait/await');
 const _ = require('lodash/core');
 const _array = require('lodash/array');
+const values = require('lodash/values')
 const escape = require('pg-escape');
 
 const masterClient = new Client({
@@ -48,7 +49,7 @@ var run = async (function (event) {
 
     await (checkRows(table, uuids));
 
-    moveRows(table, uuids);
+    await (moveRows(table, uuids));
 
     await (closeDBConnections());
 });
@@ -97,17 +98,49 @@ let checkRows = async (function(table, uuids) {
     if(diff !== 0) {
         throw diff + ' uuids could not be found.'
     }
+
+    // TODO: Ensure uuid's don't already exist on slave
 });
 
-function moveRows(table, uuids) {
-    p('-- [TODO] copying rows to slave db');
+let moveRows = async (function(table, uuids) {
+    p('-- copying rows to slave db');
+
+    const query = escape("SELECT * FROM %I WHERE \"uuid\" in %L;", table, uuids);
+    const res = await (masterClient.query(query));
+
+    // TODO - open transaction
+    let pushes = _.map(res.rows, async ((row) => {
+        await (moveRow(table, row));
+    }));
+    await(pushes);
+
     if(!clone)
-        deleteRows(table, uuids);
+        await (deleteRows(table, uuids));
+    // TODO - close transaction
+});
+
+let moveRow = async (function(table, row) {
+    let vals = values(row);
+    vals = encodedValues(vals);
+    const query = escape("INSERT INTO %I VALUES(%s)", table, vals);
+    await (slaveClient.query(query));
+});
+
+let encodedValues = function(vals) {
+    return _.map(vals, (v) => {
+        if(typeof(v) == 'number')
+            return v;
+        if(v !== null && v.constructor.name == 'Date')
+            return escape.literal(v.toISOString());
+        if(v !== null && v.constructor.name == 'Boolean')
+            return escape.string(v);
+        return escape.literal(v);
+    })
 }
 
-function deleteRows(table, uuids) {
+let deleteRows = async (function(table, uuids) {
     p('-- [TODO] deleting rows from master db');
-}
+});
 
 let closeDBConnections = async (function () {
     p('-- closing connections to databases');
