@@ -144,7 +144,10 @@ const encodedValues = function(vals) {
 }
 
 const deleteRows = async (function(table, uuids) {
-    p('-- [TODO] deleting rows from master db');
+    p('-- deleting rows from master db');
+
+    const query = escape("DELETE FROM %I WHERE \"uuid\" in %L;", table, uuids);
+    await (masterClient.query(query));
 });
 
 const closeDBConnections = async (function () {
