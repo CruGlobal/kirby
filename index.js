@@ -137,15 +137,20 @@ const moveRows = async (function() {
     const query = escape("SELECT * FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     const res = await (masterClient.query(query));
 
-    // TODO - open transaction
-    const pushes = _.map(res.rows, async ((row) => {
-        await (moveRow(row));
-    }));
-    await(pushes);
+    try {
+        await (slaveClient.query('BEGIN'));
+        const pushes = _.map(res.rows, async ((row) => {
+            await (moveRow(row));
+        }));
+        await(pushes);
 
-    if(!options.clone)
-        await (deleteRows());
-    // TODO - close transaction
+        if(!options.clone)
+            await (deleteRows());
+        await (slaveClient.query('COMMIT'));
+    } catch (e) {
+        await (slaveClient.query('ROLLBACK'));
+        throw e;
+    }
 });
 
 const moveRow = async (function(row) {
