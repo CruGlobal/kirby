@@ -2,7 +2,15 @@
 
 console.log('Loading function');
 
-let clone = true;
+const options = {
+    // the clone option sets if Kirby will leave the rows in the master DB
+    // if false, the rows will be deleted from master after the copy
+    clone: true,
+    // the safe option sets if Kirby will fail if some of uuid's exist in the slave table
+    safe: true,
+    table: '',
+    uuids: []
+};
 
 const { Pool, Client } = require('pg');
 const async = require('asyncawait/async');
@@ -37,19 +45,22 @@ exports.handler = function(event, context, callback) {
 };
 
 const suck = async (function (event) {
-    const table = event.table;
-    const uuids = event.uuids.split(/,/);
+    options.table = event.table;
+    options.uuids = event.uuids.split(/,/);
 
     if(event["clone"] !== undefined)
-        clone = event.clone;
+        options.clone = event.clone;
+
+    if(event["safe"] !== undefined)
+        options.safe = event.safe;
 
     await (connectToDBs());
 
-    await (checkTables(table));
+    await (checkTables());
 
-    await (checkRows(table, uuids));
+    await (checkRows());
 
-    await (moveRows(table, uuids));
+    await (moveRows());
 
     await (closeDBConnections());
 });
@@ -66,7 +77,7 @@ const connectToDBs = async (function () {
     await (slaveClient.query('SELECT NOW()'));
 });
 
-const checkTables = async (function(table) {
+const checkTables = async (function() {
     p('-- checking that table exists both places');
 
     const query = "SELECT 1 " +
@@ -76,58 +87,71 @@ const checkTables = async (function(table) {
         "AND table_name = %L;";
 
     const checks = _.map([masterClient, slaveClient], async ((client) => {
-        const escaped = escape(query, table);
+        const escaped = escape(query, options.table);
         const res = await (client.query(escaped));
         if(res.rows.length === 0) {
-            throw 'Master DB missing table: ' + table
+            throw 'Master DB missing table: ' + options.table
         }
     }));
 
     await(checks);
 });
 
-const checkRows = async (function(table, uuids) {
+const checkRows = async (function() {
     p('-- checking that the rows exist in master db');
 
-    const expectedCount = _array.uniq(uuids).length;
+    const expectedCount = _array.uniq(options.uuids).length;
 
-    const query = escape("SELECT COUNT(*) FROM %I WHERE \"uuid\" in %L;", table, uuids);
+    let query = escape("SELECT COUNT(*) FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
 
     const masterRes = await (masterClient.query(query));
-    const diff = expectedCount - parseInt(masterRes.rows[0].count, 10)
+    const diff = expectedCount - parseInt(masterRes.rows[0].count, 10);
     if(diff !== 0) {
-        throw diff + ' uuids could not be found.'
+        throw diff + ' uuids could not be found.';
     }
 
-    // TODO - Should I be safe and fail? Or only send the ones that don't exist?
-    // TODO - Probably a config here because master tables will be attempted to be sent every time
+    p('-- checking that the rows do not exist in slave db');
+
+    query = escape("SELECT uuid FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     const slaveRes = await (slaveClient.query(query));
-    if(parseInt(slaveRes.rows[0].count, 10) !== 0) {
-        throw 'some of those rows already exist on the slave db'
+
+    if(options.safe) {
+        if(slaveRes.rows.length !== 0) {
+            throw 'some of those rows already exist on the slave db';
+        }
+    }
+    else {
+        const existingRows = _.map(slaveRes.rows, 'uuid');
+        options.uuids = _array.difference(options.uuids, existingRows);
     }
 });
 
-const moveRows = async (function(table, uuids) {
+const moveRows = async (function() {
     p('-- copying rows to slave db');
 
-    const query = escape("SELECT * FROM %I WHERE \"uuid\" in %L;", table, uuids);
+    if(options.uuids.length === 0) {
+        p('No rows needed to copy!');
+        return;
+    }
+
+    const query = escape("SELECT * FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     const res = await (masterClient.query(query));
 
     // TODO - open transaction
     const pushes = _.map(res.rows, async ((row) => {
-        await (moveRow(table, row));
+        await (moveRow(row));
     }));
     await(pushes);
 
-    if(!clone)
-        await (deleteRows(table, uuids));
+    if(!options.clone)
+        await (deleteRows());
     // TODO - close transaction
 });
 
-const moveRow = async (function(table, row) {
+const moveRow = async (function(row) {
     let vals = values(row);
     vals = encodedValues(vals);
-    const query = escape("INSERT INTO %I VALUES(%s)", table, vals);
+    const query = escape("INSERT INTO %I VALUES(%s)", options.table, vals);
     await (slaveClient.query(query));
 });
 
@@ -143,10 +167,10 @@ const encodedValues = function(vals) {
     })
 }
 
-const deleteRows = async (function(table, uuids) {
+const deleteRows = async (function() {
     p('-- deleting rows from master db');
 
-    const query = escape("DELETE FROM %I WHERE \"uuid\" in %L;", table, uuids);
+    const query = escape("DELETE FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     await (masterClient.query(query));
 });
 
