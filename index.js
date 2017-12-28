@@ -139,10 +139,13 @@ const moveRows = async (function() {
 
     try {
         await (slaveClient.query('BEGIN'));
-        const pushes = _.map(res.rows, async ((row) => {
-            await (moveRow(row));
-        }));
-        await(pushes);
+
+        const fields = _.map(res.fields, 'name');
+        const values = _.map(res.rows, (row) => { return escape("(%s)", encodedValues(row)) });
+        let query = escape("INSERT INTO %I (%s) VALUES ", options.table, fields);
+        query = query + values.join(', ');
+
+        await (slaveClient.query(query));
 
         if(!options.clone)
             await (deleteRows());
@@ -151,13 +154,6 @@ const moveRows = async (function() {
         await (slaveClient.query('ROLLBACK'));
         throw e;
     }
-});
-
-const moveRow = async (function(row) {
-    let vals = values(row);
-    vals = encodedValues(vals);
-    const query = escape("INSERT INTO %I VALUES(%s)", options.table, vals);
-    await (slaveClient.query(query));
 });
 
 const encodedValues = function(vals) {
