@@ -66,20 +66,15 @@ const suck = async (function (event) {
 });
 
 const connectToDBs = async (function () {
-    p('-- connecting to databases');
-
     await (masterClient.connect());
-
-    const res = await (masterClient.query('SELECT NOW()'));
-    p('master now: ' + res.rows[0].now);
+    await (masterClient.query('SELECT NOW()'));
 
     await (slaveClient.connect());
     await (slaveClient.query('SELECT NOW()'));
 });
 
+// checking that table exists both places
 const checkTables = async (function() {
-    p('-- checking that table exists both places');
-
     const query = "SELECT 1 " +
         "FROM information_schema.tables " +
         "WHERE table_schema='public' " +
@@ -97,9 +92,8 @@ const checkTables = async (function() {
     await(checks);
 });
 
+// checking that the rows exist in master db
 const checkRows = async (function() {
-    p('-- checking that the rows exist in master db');
-
     const expectedCount = _array.uniq(options.uuids).length;
 
     let query = escape("SELECT COUNT(*) FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
@@ -110,8 +104,7 @@ const checkRows = async (function() {
         throw diff + ' uuids could not be found.';
     }
 
-    p('-- checking that the rows do not exist in slave db');
-
+    // checking that the rows do not exist in slave db
     query = escape("SELECT uuid FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     const slaveRes = await (slaveClient.query(query));
 
@@ -127,10 +120,8 @@ const checkRows = async (function() {
 });
 
 const moveRows = async (function() {
-    p('-- copying rows to slave db');
-
+    // No rows to copy!
     if(options.uuids.length === 0) {
-        p('No rows needed to copy!');
         return;
     }
 
@@ -169,19 +160,11 @@ const encodedValues = function(vals) {
 }
 
 const deleteRows = async (function() {
-    p('-- deleting rows from master db');
-
     const query = escape("DELETE FROM %I WHERE \"uuid\" in %L;", options.table, options.uuids);
     await (masterClient.query(query));
 });
 
 const closeDBConnections = async (function () {
-    p('-- closing connections to databases');
-
     await (masterClient.end());
     await (slaveClient.end());
 });
-
-function p(s) {
-    console.log(s)
-}
