@@ -1,0 +1,28 @@
+{
+  "name": "kirby",
+  "version": "0.1.0",
+  "description": "'Sucks' rows from one database to another.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:CruGlobal/kirby.git"
+  },
+  "author": "Spencer Oberstadt",
+  "license": "MIT",
+  "scripts": {
+    "setup": "./node_modules/.bin/node-lambda setup",
+    "test": "./node_modules/.bin/node-lambda run",
+    "package": "./node_modules/.bin/node-lambda package",
+    "deploy": "./node_modules/.bin/node-lambda deploy"
+  },
+  "dependencies": {
+    "asyncawait": "^1.0.6",
+    "lodash": "^4.17.4",
+    "pg": "^7.4.0",
+    "pg-escape": "^0.2.0"
+  },
+  "devDependencies": {
+    "node-lambda": "^0.11.5",
+    "standard": "^10.0.3"
+  }
+}
