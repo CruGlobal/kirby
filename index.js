@@ -3,8 +3,7 @@
 const { Pool } = require('pg')
 const escape = require('pg-escape')
 const { async, await } = require('asyncawait')
-const _ = require('lodash/core')
-const _array = require('lodash/array')
+const { map, uniq, difference } = require('lodash')
 
 const masterPool = new Pool({
   user: process.env.MASTER_PG_USER,
@@ -35,7 +34,7 @@ exports.handler = function (event, context, callback) {
 
   const suck = async(function (event) {
     options.table = event.table
-    options.uuids = event.uuids.split(/,/)
+    options.uuids = uniq(event.uuids.split(/,/))
 
     if (event['clone'] !== undefined) { options.clone = event.clone }
 
@@ -68,7 +67,7 @@ exports.handler = function (event, context, callback) {
                   "AND table_type='BASE TABLE'" +
                   'AND table_name = %L;'
 
-    const checks = _.map([masterClient, slaveClient], async((client) => {
+    const checks = map([masterClient, slaveClient], async((client) => {
       const escaped = escape(query, options.table)
       const res = await(client.query(escaped))
       if (res.rows.length === 0) {
@@ -81,7 +80,7 @@ exports.handler = function (event, context, callback) {
 
   // checking that the rows exist in master db
   const checkRows = async(function () {
-    const expectedCount = _array.uniq(options.uuids).length
+    const expectedCount = options.uuids.length
 
     let query = escape('SELECT COUNT(*) FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
 
@@ -100,8 +99,8 @@ exports.handler = function (event, context, callback) {
         throw 'some of those rows already exist on the slave db'
       }
     } else {
-      const existingRows = _.map(slaveRes.rows, 'uuid')
-      options.uuids = _array.difference(options.uuids, existingRows)
+      const existingRows = map(slaveRes.rows, 'uuid')
+      options.uuids = difference(options.uuids, existingRows)
     }
   })
 
@@ -117,8 +116,8 @@ exports.handler = function (event, context, callback) {
     try {
       await(slaveClient.query('BEGIN'))
 
-      const fields = _.map(res.fields, 'name')
-      const values = _.map(res.rows, (row) => { return escape('(%s)', encodedValues(row)) })
+      const fields = map(res.fields, 'name')
+      const values = map(res.rows, (row) => { return escape('(%s)', encodedValues(row)) })
       let query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
       query = query + values.join(', ')
 
@@ -133,7 +132,7 @@ exports.handler = function (event, context, callback) {
   })
 
   const encodedValues = function (vals) {
-    return _.map(vals, (v) => {
+    return map(vals, (v) => {
       if (typeof (v) === 'number') { return v }
       if (v !== null && v.constructor.name === 'Date') { return escape.literal(v.toISOString()) }
       if (v !== null && v.constructor.name === 'Boolean') { return escape.string(v) }
