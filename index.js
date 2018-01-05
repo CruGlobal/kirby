@@ -1,10 +1,23 @@
 'use strict'
 
-const { Client } = require('pg')
+const { Pool } = require('pg')
 const escape = require('pg-escape')
 const { async, await } = require('asyncawait')
 const _ = require('lodash/core')
 const _array = require('lodash/array')
+
+const masterPool = new Pool({
+  user: process.env.MASTER_PG_USER,
+  host: process.env.MASTER_PG_ADDR,
+  database: process.env.MASTER_PG_DB,
+  password: process.env.MASTER_PG_PASS
+})
+const slavePool = new Pool({
+  user: process.env.SLAVE_PG_USER,
+  host: process.env.SLAVE_PG_ADDR,
+  database: process.env.SLAVE_PG_DB,
+  password: process.env.SLAVE_PG_PASS
+})
 
 exports.handler = function (event, context, callback) {
   const options = {
@@ -17,18 +30,8 @@ exports.handler = function (event, context, callback) {
     uuids: []
   }
 
-  const masterClient = new Client({
-    user: process.env.MASTER_PG_USER,
-    host: process.env.MASTER_PG_ADDR,
-    database: process.env.MASTER_PG_DB,
-    password: process.env.MASTER_PG_PASS
-  })
-  const slaveClient = new Client({
-    user: process.env.SLAVE_PG_USER,
-    host: process.env.SLAVE_PG_ADDR,
-    database: process.env.SLAVE_PG_DB,
-    password: process.env.SLAVE_PG_PASS
-  })
+  let masterClient
+  let slaveClient
 
   const suck = async(function (event) {
     options.table = event.table
@@ -50,10 +53,10 @@ exports.handler = function (event, context, callback) {
   })
 
   const connectToDBs = async(function () {
-    await(masterClient.connect())
+    masterClient = await(masterPool.connect())
     await(masterClient.query('SELECT NOW()'))
 
-    await(slaveClient.connect())
+    slaveClient = await(slavePool.connect())
     await(slaveClient.query('SELECT NOW()'))
   })
 
