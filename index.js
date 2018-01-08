@@ -33,12 +33,13 @@ exports.handler = function (event, context, callback) {
   let slaveClient
 
   const suck = async(function (event) {
-    options.table = event.table
-    options.uuids = uniq(event.uuids.split(/,/))
+    const body = JSON.parse(event.body)
+    options.table = body.table
+    options.uuids = uniq(body.uuids.split(/,/))
 
-    if (event['clone'] !== undefined) { options.clone = event.clone }
+    if (body['clone'] !== undefined) { options.clone = body.clone }
 
-    if (event['safe'] !== undefined) { options.safe = event.safe }
+    if (body['safe'] !== undefined) { options.safe = body.safe }
 
     await(connectToDBs())
 
@@ -71,7 +72,7 @@ exports.handler = function (event, context, callback) {
       const escaped = escape(query, options.table)
       const res = await(client.query(escaped))
       if (res.rows.length === 0) {
-        throw 'Master DB missing table: ' + options.table
+        throw client.database + ' missing table: ' + options.table
       }
     }))
 
@@ -152,7 +153,13 @@ exports.handler = function (event, context, callback) {
 
   suck(event)
     .then(() => {
-      callback(null, 'some success message')
+      var response = {
+        "statusCode": 200,
+        "headers": {},
+        "body": JSON.stringify({ count: options.uuids.length }),
+        "isBase64Encoded": false
+      }
+      callback(null, response)
     })
     .catch((e) => {
       closeDBConnections()
