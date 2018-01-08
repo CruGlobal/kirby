@@ -13,9 +13,8 @@
     "setup": "./node_modules/.bin/node-lambda setup",
     "test": "./node_modules/.bin/node-lambda run",
     "package": "./node_modules/.bin/node-lambda package",
-    "deploy": "./node_modules/.bin/node-lambda deploy",
-    "deploy-staging": "./node_modules/.bin/node-lambda package -e staging && aws lambda update-function-code --function-name=mpdx_kirby-staging --zip-file fileb://build/mpdx_kirby-staging.zip",
-    "deploy-prod": "./node_modules/.bin/node-lambda package -e production && aws lambda update-function-code --function-name=mpdx_kirby-production --zip-file fileb://build/mpdx_kirby-production.zip"
+    "deploy-node": "./node_modules/.bin/node-lambda deploy",
+    "deploy": "./node_modules/.bin/node-lambda package -e staging && aws lambda update-function-code --function-name=mpdx_kirby --zip-file fileb://build/mpdx_kirby-staging.zip"
   },
   "dependencies": {
     "asyncawait": "^1.0.6",

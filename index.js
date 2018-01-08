@@ -5,18 +5,7 @@ const escape = require('pg-escape')
 const { async, await } = require('asyncawait')
 const { map, uniq, difference } = require('lodash')
 
-const masterPool = new Pool({
-  user: process.env.MASTER_PG_USER,
-  host: process.env.MASTER_PG_ADDR,
-  database: process.env.MASTER_PG_DB,
-  password: process.env.MASTER_PG_PASS
-})
-const slavePool = new Pool({
-  user: process.env.SLAVE_PG_USER,
-  host: process.env.SLAVE_PG_ADDR,
-  database: process.env.SLAVE_PG_DB,
-  password: process.env.SLAVE_PG_PASS
-})
+let masterPool, slavePool;
 
 exports.handler = function (event, context, callback) {
   const options = {
@@ -41,7 +30,7 @@ exports.handler = function (event, context, callback) {
 
     if (body['safe'] !== undefined) { options.safe = body.safe }
 
-    await(connectToDBs())
+    await(connectToDBs(event))
 
     await(checkTables())
 
@@ -52,7 +41,20 @@ exports.handler = function (event, context, callback) {
     await(closeDBConnections())
   })
 
-  const connectToDBs = async(function () {
+  const connectToDBs = async(function (event) {
+    masterPool = new Pool({
+      user: event.stageVariables.MASTER_PG_USER,
+      host: event.stageVariables.MASTER_PG_ADDR,
+      database: event.stageVariables.MASTER_PG_DB,
+      password: event.stageVariables.MASTER_PG_PASS
+    })
+    slavePool = new Pool({
+      user: event.stageVariables.SLAVE_PG_USER,
+      host: event.stageVariables.SLAVE_PG_ADDR,
+      database: event.stageVariables.SLAVE_PG_DB,
+      password: event.stageVariables.SLAVE_PG_PASS
+    })
+
     masterClient = await(masterPool.connect())
     await(masterClient.query('SELECT NOW()'))
 
