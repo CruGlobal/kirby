@@ -111,24 +111,19 @@ exports.handler = function (event, context, callback) {
       return
     }
 
-    const query = escape('SELECT * FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
+    let query = escape('SELECT * FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
     const res = await(masterClient.query(query))
 
-    try {
-      await(slaveClient.query('BEGIN'))
+    const fields = map(res.fields, 'name')
+    const values = map(res.rows, (row) => { return escape('(%s)', encodedValues(row)) })
+    query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
+    query = query + values.join(', ')
 
-      const fields = map(res.fields, 'name')
-      const values = map(res.rows, (row) => { return escape('(%s)', encodedValues(row)) })
-      let query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
-      query = query + values.join(', ')
+    await(slaveClient.query(query))
 
-      await(slaveClient.query(query))
-
-      if (!options.clone) { await(deleteRows()) }
-      await(slaveClient.query('COMMIT'))
-    } catch (e) {
-      await(slaveClient.query('ROLLBACK'))
-      throw e
+    if (!options.clone) {
+      // warning: if this request fails the rows will still be in the slave db
+      await(deleteRows())
     }
   })
 
