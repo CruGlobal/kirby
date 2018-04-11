@@ -85,7 +85,7 @@ exports.handler = function (event, context, callback) {
   const checkRows = async(function () {
     const expectedCount = options.uuids.length
 
-    let query = escape('SELECT COUNT(*) FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
+    let query = escape('SELECT COUNT(*) FROM %I WHERE "id" in %L;', options.table, options.uuids)
 
     const masterRes = await(masterClient.query(query))
     const diff = expectedCount - parseInt(masterRes.rows[0].count, 10)
@@ -94,7 +94,7 @@ exports.handler = function (event, context, callback) {
     }
 
     // checking that the rows do not exist in slave db
-    query = escape('SELECT uuid FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
+    query = escape('SELECT id FROM %I WHERE "id" in %L;', options.table, options.uuids)
     const slaveRes = await(slaveClient.query(query))
 
     if (options.safe) {
@@ -102,7 +102,7 @@ exports.handler = function (event, context, callback) {
         throw 'some of those rows already exist on the slave db'
       }
     } else {
-      const existingRows = map(slaveRes.rows, 'uuid')
+      const existingRows = map(slaveRes.rows, 'id')
       options.uuids = difference(options.uuids, existingRows)
     }
   })
@@ -113,7 +113,7 @@ exports.handler = function (event, context, callback) {
       return
     }
 
-    let query = escape('SELECT * FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
+    let query = escape('SELECT * FROM %I WHERE "id" in %L;', options.table, options.uuids)
     const res = await(masterClient.query(query))
 
     const fields = map(res.fields, 'name')
@@ -139,7 +139,7 @@ exports.handler = function (event, context, callback) {
   }
 
   const deleteRows = async(function () {
-    const query = escape('DELETE FROM %I WHERE "uuid" in %L;', options.table, options.uuids)
+    const query = escape('DELETE FROM %I WHERE "id" in %L;', options.table, options.uuids)
     await(masterClient.query(query))
   })
 
