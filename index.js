@@ -116,7 +116,7 @@ exports.handler = function (event, context, callback) {
     let query = escape('SELECT * FROM %I WHERE "id" in %L;', options.table, options.uuids)
     const res = await(masterClient.query(query))
 
-    const fields = map(res.fields, 'name')
+    const fields = map(res.fields, (field) => { return escape.ident(field.name) })
     const values = map(res.rows, (row) => { return escape('(%s)', encodedValues(row)) })
     query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
     query = query + values.join(', ')
