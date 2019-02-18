@@ -3,7 +3,9 @@
 # print every command before executing
 set -ex
 
-git checkout staging
+git remote set-branches origin 'staging'
+git fetch origin --depth=50
+git checkout -b staging origin/staging
 
 # attempt a merge
 git merge master --no-edit
