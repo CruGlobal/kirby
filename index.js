@@ -26,9 +26,9 @@ exports.handler = function (event, context, callback) {
     options.table = body.table
     options.uuids = uniq(body.uuids.split(/,/))
 
-    if (body['clone'] !== undefined) { options.clone = body.clone }
+    if (body.clone !== undefined) { options.clone = body.clone }
 
-    if (body['safe'] !== undefined) { options.safe = body.safe }
+    if (body.safe !== undefined) { options.safe = body.safe }
 
     await(connectToDBs(event))
 
