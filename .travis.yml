@@ -2,3 +2,10 @@ language: node_js
 node_js: "10"
 
 script: jshint index.js
+
+deploy:
+  provider: script
+  script: bash bin/test_merge.sh
+  on:
+    branch: master
+
