@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # print every command before executing
-set -ex
+set -x
 
 git remote set-branches origin 'staging'
 git fetch origin --depth=50
