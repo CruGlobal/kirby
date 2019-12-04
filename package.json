@@ -2,29 +2,35 @@
   "name": "kirby",
   "version": "0.1.0",
   "description": "'Sucks' rows from one database to another.",
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:CruGlobal/kirby.git"
   },
   "author": "Spencer Oberstadt",
   "license": "MIT",
+  "engines": {
+    "node": "> 10.15.0"
+  },
   "scripts": {
-    "setup": "./node_modules/.bin/node-lambda setup",
-    "test": "./node_modules/.bin/node-lambda run",
-    "package": "./node_modules/.bin/node-lambda package",
-    "deploy-node": "./node_modules/.bin/node-lambda deploy",
-    "deploy": "./node_modules/.bin/node-lambda package -e staging && aws lambda update-function-code --function-name=mpdx_kirby --zip-file fileb://build/mpdx_kirby-staging.zip"
+    "lint": "standard"
   },
   "dependencies": {
-    "asyncawait": "^1.0.6",
     "lodash": "^4.17.4",
     "pg": "^7.4.0",
     "pg-escape": "^0.2.0"
   },
   "devDependencies": {
     "jshint": "^2.10.1",
-    "node-lambda": "^0.11.5",
-    "standard": "^10.0.3"
+    "serverless": "^1.44.1",
+    "serverless-webpack": "^5.3.1",
+    "standard": "^10.0.3",
+    "webpack": "^4.2.0",
+    "webpack-node-externals": "^1.6.0"
+  },
+  "standard": {
+    "env": {
+      "node": true
+    }
   }
 }

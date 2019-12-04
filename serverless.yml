@@ -1,0 +1,54 @@
+service: okta-hooks
+
+provider:
+  name: aws
+  stage: ${env:ENVIRONMENT}
+  runtime: nodejs10.x
+  region: us-east-1
+  vpc:
+    securityGroupIds:
+      - ${file(${env:ECS_CONFIG}/bin/vars.yml):us-east-1.webapp_elb_sg}
+    subnetIds: ${file(${env:ECS_CONFIG}/bin/vars.yml):us-east-1.prod_apps_1_all}
+  stackTags:
+    Name: ${env:PROJECT_NAME}-${self:custom.environmentMap.${env:ENVIRONMENT}}
+    owner: apps@cru.org
+    application: ${env:PROJECT_NAME}
+    env: ${self:custom.environmentMap.${env:ENVIRONMENT}}
+    managed_by: serverless-framework
+    function: lambda
+
+package:
+  individually: true
+  exclude:
+    - .serverless/**
+    - .webpack/**
+    - .git/**
+    - test/**
+    - '**/*.test.js'
+    - '**/*.sql'
+    - .deployment/**
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packager: yarn
+    excludeFiles: '**/*.test.js'
+  environmentMap:
+    production: prod
+    staging: stage
+    development: dev
+    lab: lab
+
+functions:
+  kirby:
+    handler: src/index.handler
+    memorySize: 256
+    timeout: 60
+    events:
+      - http:
+          path: /mpdx_kirby
+          method: POST

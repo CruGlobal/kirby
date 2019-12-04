@@ -39,3 +39,4 @@ event_sources.json
 .DS_Store
 .lambda
 build/
+.idea
