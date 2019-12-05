@@ -1,4 +1,4 @@
-service: okta-hooks
+service: kirby
 
 provider:
   name: aws
