@@ -1,8 +1,8 @@
 'use strict'
 
-const { Pool } = require('pg')
-const escape = require('pg-escape')
-const { map, uniq, difference } = require('lodash')
+import {Pool} from 'pg'
+import escape from 'pg-escape'
+import { map, uniq, difference } from 'lodash'
 
 let masterPool, slavePool
 
