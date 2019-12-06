@@ -1,6 +1,6 @@
 'use strict'
 
-import {Pool} from 'pg'
+import { Pool } from 'pg'
 import escape from 'pg-escape'
 import { map, uniq, difference } from 'lodash'
 
