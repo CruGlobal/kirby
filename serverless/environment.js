@@ -17,12 +17,3 @@ module.exports = () => {
     SLAVE_PG_PORT: process.env.SLAVE_PG_PORT || ''
   }
 }
-
-
-
-
-
-
-
-
-
