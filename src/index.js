@@ -42,18 +42,18 @@ export const handler = async (event) => {
 
   const connectToDBs = async (event) => {
     masterPool = new Pool({
-      user: event.stageVariables.MASTER_PG_USER,
-      host: event.stageVariables.MASTER_PG_ADDR,
-      database: event.stageVariables.MASTER_PG_DB,
-      password: event.stageVariables.MASTER_PG_PASS,
-      port: event.stageVariables.MASTER_PG_PORT
+      user: process.env.MASTER_PG_USER,
+      host: process.env.MASTER_PG_ADDR,
+      database: process.env.MASTER_PG_DB,
+      password: process.env.MASTER_PG_PASS,
+      port: process.env.MASTER_PG_PORT
     })
     slavePool = new Pool({
-      user: event.stageVariables.SLAVE_PG_USER,
-      host: event.stageVariables.SLAVE_PG_ADDR,
-      database: event.stageVariables.SLAVE_PG_DB,
-      password: event.stageVariables.SLAVE_PG_PASS,
-      port: event.stageVariables.SLAVE_PG_PORT
+      user: process.env.SLAVE_PG_USER,
+      host: process.env.SLAVE_PG_ADDR,
+      database: process.env.SLAVE_PG_DB,
+      password: process.env.SLAVE_PG_PASS,
+      port: process.env.SLAVE_PG_PORT
     })
 
     masterClient = await masterPool.connect()
