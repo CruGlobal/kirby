@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "jshint": "^2.10.1",
-    "serverless": "~1.44.0",
+    "serverless": "~1.58.0",
     "serverless-webpack": "^5.3.1",
     "standard": "^10.0.3",
     "webpack": "^4.2.0",
