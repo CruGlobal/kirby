@@ -16,6 +16,7 @@ provider:
     env: ${self:custom.environmentMap.${env:ENVIRONMENT}}
     managed_by: serverless-framework
     function: lambda
+  environment: ${file(serverless/environment.js)}
 
 package:
   individually: true

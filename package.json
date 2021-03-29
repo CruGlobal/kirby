@@ -16,6 +16,7 @@
     "lint": "standard"
   },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "lodash": "^4.17.4",
     "pg": "^7.4.0",
     "pg-escape": "^0.2.0"
