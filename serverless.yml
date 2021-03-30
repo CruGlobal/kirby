@@ -17,6 +17,9 @@ provider:
     managed_by: serverless-framework
     function: lambda
   environment: ${file(serverless/environment.js)}
+  apiKeys:
+    - name: mpdx-${env:PROJECT_NAME}-${self:custom.environmentMap.${env:ENVIRONMENT}}
+      value: ${env:AWS_API_GATEWAY_KEY}
 
 package:
   individually: true
