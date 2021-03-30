@@ -17,13 +17,13 @@
   },
   "dependencies": {
     "dotenv": "^8.2.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "pg": "^7.4.0",
     "pg-escape": "^0.2.0"
   },
   "devDependencies": {
     "jshint": "^2.10.1",
-    "serverless": "~1.59.0",
+    "serverless": "^1.72.0",
     "serverless-webpack": "^5.3.1",
     "standard": "^10.0.3",
     "webpack": "^4.2.0",
