@@ -152,11 +152,11 @@ export const handler = async (event) => {
 
   return suck(event)
     .then(() => {
-      var response = {
-        'statusCode': 200,
-        'headers': {},
-        'body': JSON.stringify({ count: options.uuids.length }),
-        'isBase64Encoded': false
+      const response = {
+        statusCode: 200,
+        headers: {},
+        body: JSON.stringify({ count: options.uuids.length }),
+        isBase64Encoded: false
       }
       return response
     })

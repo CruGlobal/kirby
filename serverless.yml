@@ -1,14 +1,20 @@
 service: kirby
+frameworkVersion: '3'
+configValidationMode: error
+plugins:
+  - serverless-webpack
 
 provider:
   name: aws
   stage: ${env:ENVIRONMENT}
-  runtime: nodejs10.x
   region: us-east-1
   vpc:
     securityGroupIds:
-      - ${file(${env:ECS_CONFIG}/bin/vars.yml):us-east-1.webapp_elb_sg}
-    subnetIds: ${file(${env:ECS_CONFIG}/bin/vars.yml):us-east-1.prod_apps_1_all}
+      - sg-888294ed
+    subnetIds:
+      - subnet-f2c2dfda # us-east-1a
+      - subnet-1508db62 # us-east-1b
+      - subnet-3fd94266 # us-east-1c
   stackTags:
     Name: ${env:PROJECT_NAME}-${self:custom.environmentMap.${env:ENVIRONMENT}}
     owner: apps@cru.org
@@ -16,24 +22,21 @@ provider:
     env: ${self:custom.environmentMap.${env:ENVIRONMENT}}
     managed_by: serverless-framework
     function: lambda
-  environment: ${file(serverless/environment.js)}
-  apiKeys:
-    - name: mpdx-${env:PROJECT_NAME}-${self:custom.environmentMap.${env:ENVIRONMENT}}
-      value: ${env:AWS_API_GATEWAY_KEY}
+  apiGateway:
+    apiKeys:
+      - name: mpdx-${env:PROJECT_NAME}-${self:custom.environmentMap.${env:ENVIRONMENT}}
+        value: ${env:AWS_API_GATEWAY_KEY}
+  layers:
+    - arn:aws:lambda:us-east-1:072686360478:layer:node-16_14_2:1
+  environment: ${file(env.js)}
 
 package:
   individually: true
-  exclude:
-    - .serverless/**
-    - .webpack/**
-    - .git/**
-    - test/**
-    - '**/*.test.js'
-    - '**/*.sql'
-    - .deployment/**
-
-plugins:
-  - serverless-webpack
+  patterns:
+    - '!.webpack/**'
+    - '!test/**'
+    - '!**/*.test.js'
+    - '!.deployment/**'
 
 custom:
   webpack:
@@ -41,6 +44,7 @@ custom:
     includeModules: true
     packager: yarn
     excludeFiles: '**/*.test.js'
+    excludeRegex: \.ts|test|\.map
   environmentMap:
     production: prod
     staging: stage
@@ -56,3 +60,4 @@ functions:
       - http:
           path: /mpdx_kirby
           method: POST
+          private: true

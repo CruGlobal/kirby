@@ -31,8 +31,10 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 
+# dotenv environment variables file
+!.env
+.env.*
 
-.env
 deploy.env
 event.json
 event_sources.json
