@@ -122,7 +122,6 @@ export const handler = async (event) => {
     const values = map(res.rows, row => escape('(%s)', encodedValues(row)))
     query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
     query = query + values.join(', ')
-    console.log(query)
 
     await slaveClient.query(query)
 
