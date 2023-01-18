@@ -28,7 +28,7 @@ export const handler = async (event) => {
     if (body.clone !== undefined) { options.clone = body.clone }
 
     if (body.safe !== undefined) { options.safe = body.safe }
-    
+
     await connectToDBs(event)
 
     await checkTables()
@@ -41,7 +41,7 @@ export const handler = async (event) => {
   }
 
   const connectToDBs = async (event) => {
-    console.log(process.env.MASTER_PG_ADDR)
+    console.log(process.env)
     masterPool = new Pool({
       user: process.env.MASTER_PG_USER,
       host: process.env.MASTER_PG_ADDR,
@@ -57,13 +57,14 @@ export const handler = async (event) => {
       port: process.env.SLAVE_PG_PORT
     })
 
-    console.log("connecting to slave")
-    slaveClient = await slavePool.connect()
-    await slaveClient.query('SELECT NOW()')
-    console.log("connecting to master")
+    console.log('connecting to master')
     masterClient = await masterPool.connect()
     await masterClient.query('SELECT NOW()')
-  }
+
+    console.log('connecting to slave')
+    slaveClient = await slavePool.connect()
+    await slaveClient.query('SELECT NOW()')
+}
 
   // checking that table exists both places
   const checkTables = async () => {
