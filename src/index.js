@@ -138,8 +138,11 @@ export const handler = async (event) => {
       if (v !== null && v.constructor.name === 'Date') { return escape.literal(v.toISOString()) }
       if (v !== null && v.constructor.name === 'Boolean') { return escape.string(v) }
       if (v !== null && v.constructor.name === 'Array') { 
+        result = ""
         for (let i = 0; i < v.length; i++) {
-        v[i] = '{' + v[i] + '}'
+          result += '{' + v[i] + '}'
+        }
+        return result
       }
       return escape.literal(v)
     })
