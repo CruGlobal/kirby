@@ -21,7 +21,7 @@ export const handler = async (event) => {
   let slaveClient
 
   const suck = async (event) => {
-    console.log(event)
+    console.log(event.body)
     const body = JSON.parse(event.body)
     options.table = body.table
     options.uuids = uniq(body.uuids.split(/,/))
@@ -29,6 +29,8 @@ export const handler = async (event) => {
     if (body.clone !== undefined) { options.clone = body.clone }
 
     if (body.safe !== undefined) { options.safe = body.safe }
+    console.log(body)
+    console.log(options)
 
     await connectToDBs(event)
 
@@ -57,9 +59,11 @@ export const handler = async (event) => {
       port: process.env.SLAVE_PG_PORT
     })
 
+    console.log("connecting to master")
     masterClient = await masterPool.connect()
     await masterClient.query('SELECT NOW()')
 
+    console.log("connecting to slave")
     slaveClient = await slavePool.connect()
     await slaveClient.query('SELECT NOW()')
   }
