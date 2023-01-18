@@ -12,7 +12,7 @@ module.exports = (async () => {
       hints: false
     },
     optimization: {
-      minimize: true,
+      minimize: false,
       usedExports: true
     }
   }
