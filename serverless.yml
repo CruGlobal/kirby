@@ -11,6 +11,7 @@ provider:
   vpc:
     securityGroupIds:
       - sg-888294ed
+      - sg-00f1ca57a9cfe18a0
     subnetIds:
       - subnet-f2c2dfda # us-east-1a
       - subnet-1508db62 # us-east-1b
