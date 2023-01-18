@@ -21,7 +21,6 @@ export const handler = async (event) => {
   let slaveClient
 
   const suck = async (event) => {
-    console.log(event)
     const body = JSON.parse(event.body)
     options.table = body.table
     options.uuids = uniq(body.uuids.split(/,/))
@@ -29,9 +28,7 @@ export const handler = async (event) => {
     if (body.clone !== undefined) { options.clone = body.clone }
 
     if (body.safe !== undefined) { options.safe = body.safe }
-    console.log(body)
-    console.log(options)
-
+    
     await connectToDBs(event)
 
     await checkTables()
@@ -44,7 +41,7 @@ export const handler = async (event) => {
   }
 
   const connectToDBs = async (event) => {
-    console.log(process.env)
+    console.log(process.env.MASTER_PG_ADDR)
     masterPool = new Pool({
       user: process.env.MASTER_PG_USER,
       host: process.env.MASTER_PG_ADDR,
