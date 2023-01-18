@@ -64,7 +64,7 @@ export const handler = async (event) => {
     console.log('connecting to slave')
     slaveClient = await slavePool.connect()
     await slaveClient.query('SELECT NOW()')
-}
+  }
 
   // checking that table exists both places
   const checkTables = async () => {
