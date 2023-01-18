@@ -21,8 +21,7 @@ export const handler = async (event) => {
   let slaveClient
 
   const suck = async (event) => {
-    console.log(event.body)
-    
+    console.log(event)
     const body = JSON.parse(event.body)
     options.table = body.table
     options.uuids = uniq(body.uuids.split(/,/))
