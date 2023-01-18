@@ -57,13 +57,12 @@ export const handler = async (event) => {
       port: process.env.SLAVE_PG_PORT
     })
 
-    console.log("connecting to master")
-    masterClient = await masterPool.connect()
-    await masterClient.query('SELECT NOW()')
-
     console.log("connecting to slave")
     slaveClient = await slavePool.connect()
     await slaveClient.query('SELECT NOW()')
+    console.log("connecting to master")
+    masterClient = await masterPool.connect()
+    await masterClient.query('SELECT NOW()')
   }
 
   // checking that table exists both places
