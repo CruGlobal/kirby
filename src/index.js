@@ -41,7 +41,6 @@ export const handler = async (event) => {
   }
 
   const connectToDBs = async (event) => {
-    console.log(process.env)
     masterPool = new Pool({
       user: process.env.MASTER_PG_USER,
       host: process.env.MASTER_PG_ADDR,
@@ -57,11 +56,9 @@ export const handler = async (event) => {
       port: process.env.SLAVE_PG_PORT
     })
 
-    console.log('connecting to master')
     masterClient = await masterPool.connect()
     await masterClient.query('SELECT NOW()')
 
-    console.log('connecting to slave')
     slaveClient = await slavePool.connect()
     await slaveClient.query('SELECT NOW()')
   }
@@ -125,6 +122,7 @@ export const handler = async (event) => {
     const values = map(res.rows, row => escape('(%s)', encodedValues(row)))
     query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
     query = query + values.join(', ')
+    console.log(query)
 
     await slaveClient.query(query)
 
