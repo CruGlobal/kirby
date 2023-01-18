@@ -137,8 +137,10 @@ export const handler = async (event) => {
       if (typeof (v) === 'number') { return v }
       if (v !== null && v.constructor.name === 'Date') { return escape.literal(v.toISOString()) }
       if (v !== null && v.constructor.name === 'Boolean') { return escape.string(v) }
-      console.log(v)
-      if (v !== null && v.constructor.name === 'Array') { return v.replace("('", "{").replace("')", "}") }
+      if (v !== null && v.constructor.name === 'Array') { 
+        for (let i = 0; i < v.length; i++) {
+        v[i] = '{' + v[i] + '}'
+      }
       return escape.literal(v)
     })
   }
