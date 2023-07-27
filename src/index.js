@@ -31,12 +31,16 @@ export const handler = async (event) => {
 
     await connectToDBs(event)
 
+    console.log("before checkTables")
     await checkTables()
 
+    console.log("before checkRows")
     await checkRows()
 
+    console.log("before moveRows")
     await moveRows()
 
+    console.log("before closeDBConnection")
     await closeDBConnections()
   }
 
