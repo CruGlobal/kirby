@@ -29,18 +29,19 @@ export const handler = async (event) => {
 
     if (body.safe !== undefined) { options.safe = body.safe }
 
+    console.log('before connectDB')
     await connectToDBs(event)
 
-    console.log("before checkTables")
+    console.log('before checkTables')
     await checkTables()
 
-    console.log("before checkRows")
+    console.log('before checkRows')
     await checkRows()
 
-    console.log("before moveRows")
+    console.log('before moveRows')
     await moveRows()
 
-    console.log("before closeDBConnection")
+    console.log('before closeDBConnection')
     await closeDBConnections()
   }
 
