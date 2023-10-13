@@ -141,7 +141,10 @@ export const handler = async (event) => {
       if (typeof (v) === 'number') { return v }
       if (v !== null && v.constructor.name === 'Date') { return escape.literal(v.toISOString()) }
       if (v !== null && v.constructor.name === 'Boolean') { return escape.string(v) }
-      if (v !== null && v.constructor.name === 'Array') { return "'{" + v.join(',') + "}'" }
+      if (v !== null && v.constructor.name === 'Array') {
+        const str = _.map(v, str => escape.literal(str)).join(',')
+        return "ARRAY [" + str + "]"
+      }
       return escape.literal(v)
     })
   }
