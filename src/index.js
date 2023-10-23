@@ -143,7 +143,7 @@ export const handler = async (event) => {
       if (v !== null && v.constructor.name === 'Boolean') { return escape.string(v) }
       if (v !== null && v.constructor.name === 'Array') {
         const str = map(v, str => escape.literal(str)).join(',')
-        return 'ARRAY [' + str + ']'
+        return 'ARRAY [' + str + ']::varchar[]'
       }
       return escape.literal(v)
     })
