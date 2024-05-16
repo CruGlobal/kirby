@@ -43,7 +43,7 @@ export const handler = async (event) => {
   const connectToDBs = async (event) => {
     console.log('master:' + process.env.MASTER_PG_ADDR)
     console.log('slave:' + process.env.SLAVE_PG_ADDR)
-    
+
     masterPool = new Pool({
       user: process.env.MASTER_PG_USER,
       host: process.env.MASTER_PG_ADDR,
