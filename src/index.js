@@ -29,23 +29,21 @@ export const handler = async (event) => {
 
     if (body.safe !== undefined) { options.safe = body.safe }
 
-    console.log('before connectDB')
     await connectToDBs(event)
 
-    console.log('before checkTables')
     await checkTables()
 
-    console.log('before checkRows')
     await checkRows()
 
-    console.log('before moveRows')
     await moveRows()
 
-    console.log('before closeDBConnection')
     await closeDBConnections()
   }
 
   const connectToDBs = async (event) => {
+    console.log("master:" + process.env.MASTER_PG_ADDR)
+    console.log("slave:" + process.env.SLAVE_PG_ADDR)
+    
     masterPool = new Pool({
       user: process.env.MASTER_PG_USER,
       host: process.env.MASTER_PG_ADDR,
