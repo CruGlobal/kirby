@@ -155,16 +155,16 @@ export const handler = async (event) => {
   }
 
   const closeDBConnections = async () => {
-    try{
+    try {
       await masterClient.end()
-    } catch(e) {
-      console.log("Error closing masterClient", e)
+    } catch (e) {
+      console.log('Error closing masterClient', e)
     }
 
-    try{
+    try {
       await slaveClient.end()
-    } catch(e) {
-      console.log("Error closing slaveClient", e)
+    } catch (e) {
+      console.log('Error closing slaveClient', e)
     }
   }
 
