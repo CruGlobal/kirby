@@ -49,14 +49,16 @@ export const handler = async (event) => {
       host: process.env.MASTER_PG_ADDR,
       database: process.env.MASTER_PG_DB,
       password: process.env.MASTER_PG_PASS,
-      port: process.env.MASTER_PG_PORT
+      port: process.env.MASTER_PG_PORT,
+      ssl: true
     })
     slavePool = new Pool({
       user: process.env.SLAVE_PG_USER,
       host: process.env.SLAVE_PG_ADDR,
       database: process.env.SLAVE_PG_DB,
       password: process.env.SLAVE_PG_PASS,
-      port: process.env.SLAVE_PG_PORT
+      port: process.env.SLAVE_PG_PORT,
+      ssl: true
     })
 
     masterClient = await masterPool.connect()
