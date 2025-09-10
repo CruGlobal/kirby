@@ -128,7 +128,12 @@ export const handler = async (event) => {
     query = escape('INSERT INTO %I (%s) VALUES ', options.table, fields)
     query = query + values.join(', ')
 
-    await slaveClient.query(query)
+    try {
+      await slaveClient.query(query)
+    } catch (e) {
+      console.log('Could not transfer row: ' + query, e)
+      throw e
+    }
 
     if (!options.clone) {
       // warning: if this request fails the rows will still be in the slave db
